@@ -5,13 +5,11 @@ from typing import Dict, Any
 def _to_dt(x):
     if x is None: return None
     if isinstance(x, datetime): return x
-    # Accept ISO with Z
     return datetime.fromisoformat(str(x).replace("Z","+00:00"))
 
 def _hm_to_minutes(hm: str) -> int:
     h, m = map(int, hm.split(":")); return h*60 + m
 
-# --- EASA FDP table-driven evaluation ---
 def _parse_hhmm(s: str):
     h, m = s.split(":"); return int(h), int(m)
 
@@ -24,7 +22,6 @@ def easa_base_limit_minutes(report_local: datetime, sectors: int, rules: Dict[st
         sh, sm = _parse_hhmm(row["start_local"]); eh, em = _parse_hhmm(row["end_local"])
         if _within(t, time(sh,sm), time(eh,em)):
             limits = row.get("limits", {})
-            # cap sectors at max defined
             keys = sorted(map(int, limits.keys()))
             k = sectors if str(sectors) in limits else keys[-1]
             return int(limits[str(k)])
@@ -65,7 +62,6 @@ def evaluate_easa(report_local: datetime, actual_minutes: int, sectors: int, rul
         res["info"].append({"rule_source":"EASA","note":"Within FDP","flex_minutes": flex})
     return res
 
-# --- OMA evaluation (Augmented & Cabin in‑flight rest) ---
 def oma_augmented_cap_minutes(aug_rules: Dict[str, Any], sectors: int, rest_class: int, augmented_pilots: int, long_sector_over_9h: bool) -> int:
     if augmented_pilots not in (1,2): return 0
     rc = str(rest_class)
@@ -80,7 +76,6 @@ def evaluate_oma(crew_role: str, report_utc: datetime, end_utc: datetime, sector
         out["violations"].append({"rule_source":"OMA","rule":"inputs_missing","title":"Report and end times required"})
         return out
     actual_min = int((end_utc - report_utc).total_seconds()/60.0)
-    # Cabin in-flight rest table
     if crew_role == "cabin":
         rest_class = rest_class or 0
         table = rules.get("cabin_crew", {}).get("min_rest_by_extended_fdp", [])
@@ -99,7 +94,6 @@ def evaluate_oma(crew_role: str, report_utc: datetime, end_utc: datetime, sector
         else:
             out["info"].append({"rule_source":"OMA","note":"Cabin in‑flight rest requirement satisfied"})
         return out
-    # Flight crew augmented caps
     if (augmented_pilots or 0)>0 and (rest_class or 0) in (1,2):
         cap = oma_augmented_cap_minutes(rules.get("augmentation_caps",{}), sectors, int(rest_class), int(augmented_pilots or 0), bool(long_sector_over_9h))
         flex = cap - actual_min

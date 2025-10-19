@@ -1,6 +1,6 @@
 {
   "bundle_id": "EASA-ORO.FTL.205b-Table2",
-  "notes": "Replace with official EASA FDP Table 2 values as required. Sector corrections & WOCL applied.",
+  "notes": "Replace with official EASA FDP Table 2 values as required.",
   "default_limit_minutes": 660,
   "fdp_rows": [
     {

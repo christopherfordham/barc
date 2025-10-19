@@ -9,8 +9,7 @@ from pydantic import BaseModel, Field
 from parsers.emaestro import parse_emaestro_xml
 from evaluator.rules_engine import evaluate_easa, evaluate_oma, summarise
 
-APP_VERSION = "3.0"
-
+APP_VERSION = "3.0.1"
 BASE_TZ = os.environ.get("BARC_BASE_TZ","Europe/London")
 
 def load_rules(name: str):
@@ -18,12 +17,10 @@ def load_rules(name: str):
     path = os.path.join(here, "rules", name)
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
-
 EASA = load_rules("easa_fdp.json")
 OMA = load_rules("oma_rules.json")
 
 app = FastAPI(title="BARC API", version=APP_VERSION)
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -36,7 +33,6 @@ app.add_middleware(
 def health():
     return {"ok": True, "service": "BARC API", "version": APP_VERSION}
 
-# ===== Schemas =====
 class DutyInput(BaseModel):
     duty_date_z: str = Field(..., description="YYYY-MM-DD (Zulu)")
     report_time_z: str = Field(..., description="HH:MM (Zulu)")
@@ -48,39 +44,21 @@ class DutyInput(BaseModel):
     long_sector_over_9h: Optional[bool] = False
     inflight_rest_minutes: Optional[int] = 0
 
-class RosterDuty(BaseModel):
-    duty_id: Optional[str] = None
-    crew_role: Literal["flight","cabin"] = "flight"
-    planned_start_utc: Optional[datetime] = None
-    planned_end_utc: Optional[datetime] = None
-    sectors: Optional[int] = 1
-    augmented_pilots: Optional[int] = 0
-    rest_facility_class: Optional[int] = None
-    long_sector_over_9h: Optional[bool] = False
-    inflight_rest_minutes: Optional[int] = 0
-
-# ===== Helpers =====
 def parse_zulu(date_str: str, time_str: str) -> datetime:
     return datetime.fromisoformat(f"{date_str}T{time_str}:00+00:00")
 
-# ===== Routes =====
 @app.post("/check-duty")
 def check_single_duty(payload: DutyInput):
-    # Compute FDP as (off-blocks final + 30 min) - report
     rpt = parse_zulu(payload.duty_date_z, payload.report_time_z)
     end = parse_zulu(payload.duty_date_z, payload.offblocks_final_z) + timedelta(minutes=30)
     if end <= rpt:
-        # handle crossing midnight
         end = end + timedelta(days=1)
     actual_min = int((end - rpt).total_seconds()//60)
-    # For EASA table we need report LOCAL time; we use Europe/London by default then adjust from UTC
-    # Here we treat rpt as UTC; convert to local with Europe/London for WOCL & bands
     try:
         from zoneinfo import ZoneInfo
         rpt_local = rpt.astimezone(ZoneInfo(BASE_TZ))
     except Exception:
-        rpt_local = rpt  # fallback
-
+        rpt_local = rpt
     easa = evaluate_easa(rpt_local, actual_min, payload.num_sectors, EASA)
     oma = evaluate_oma(payload.crew_role, rpt, end, payload.num_sectors,
                        payload.rest_facility_class, payload.augmented_pilots,
@@ -93,11 +71,15 @@ def check_single_duty(payload: DutyInput):
 async def upload_roster(file: UploadFile = File(...), crew_role: Literal["flight","cabin"]="flight"):
     raw = await file.read()
     duties_raw, meta = parse_emaestro_xml(raw)
-    # Map parsed duties to evaluation inputs
     out = []
+    skipped = []
     from zoneinfo import ZoneInfo
     tz = ZoneInfo(BASE_TZ)
     for d in duties_raw:
+        dtype = d.get("type") or "unknown"
+        if dtype != "flying":
+            skipped.append(d)
+            continue
         start = datetime.fromisoformat(d["planned_start_utc"].replace("Z","+00:00"))
         end = datetime.fromisoformat(d["planned_end_utc"].replace("Z","+00:00"))
         sectors = int(d.get("sectors") or 1)
@@ -114,4 +96,7 @@ async def upload_roster(file: UploadFile = File(...), crew_role: Literal["flight
                "results":[easa, oma], "summary": summarise([easa,oma])}
         out.append(res)
     overall = "OK" if all(r["summary"]["overall_status"]=="OK" for r in out) else "Non-Compliant"
-    return {"parsed_duties": len(out), "roster_summary":{"overall_status": overall}, "duties": out, "meta": meta}
+    return {"parsed_duties": len(duties_raw),
+            "counts": {"flying_checked": len(out), "non_flying_skipped": len(skipped)},
+            "roster_summary":{"overall_status": overall},
+            "duties": out, "meta": meta}

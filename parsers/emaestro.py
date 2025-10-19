@@ -82,11 +82,12 @@ def parse_roster_tree(root):
                 end   = _iso_local_date_time_to_utc(ed.strip(), et.strip())
                 if end > start:
                     duties.append({
+                        "type": "ground",
                         "status": "planned",
                         "base_timezone": "Europe/London",
                         "planned_start_utc": start.isoformat().replace("+00:00","Z"),
                         "planned_end_utc": end.isoformat().replace("+00:00","Z"),
-                        "sectors": 1,
+                        "sectors": 0,
                         "crew_role": "flight",
                         "source": "roster:ground"
                     })
@@ -95,6 +96,7 @@ def parse_roster_tree(root):
             sd = _find_child_text(td, "StartDate")
             duties.append({
                 "marker": True,
+                "type": "trip_marker",
                 "trip_number": (tripno or "").strip(),
                 "trip_start_date": (sd or "").strip(),
                 "source": "roster:trip_marker"
@@ -143,6 +145,7 @@ def parse_trip_tree(root):
             end_utc = report_utc + timedelta(minutes=minutes)
 
             duties.append({
+                "type": "flying",
                 "duty_id": f"{trip_number}-{duty_no}",
                 "status": "planned",
                 "base_timezone": "Europe/London",
