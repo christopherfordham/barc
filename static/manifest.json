@@ -1,9 +1,0 @@
-{
-  "name": "BARC \u2014 BA Roster Check",
-  "short_name": "BARC",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#0b1220",
-  "theme_color": "#0b1220",
-  "icons": []
-}
