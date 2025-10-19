@@ -1,0 +1,150 @@
+{
+  "bundle_id": "BA-OMA-7.9-7.16",
+  "augmentation_caps": {
+    "1": {
+      "1": {
+        "upto3": 16.0,
+        "two_or_less_one_over_9h": 17.0
+      },
+      "2": {
+        "upto3": 17.0,
+        "two_or_less_one_over_9h": 18.0
+      }
+    },
+    "2": {
+      "1": {
+        "upto3": 15.0,
+        "two_or_less_one_over_9h": 16.0
+      },
+      "2": {
+        "upto3": 16.0,
+        "two_or_less_one_over_9h": 17.0
+      }
+    }
+  },
+  "cabin_crew": {
+    "min_rest_by_extended_fdp": [
+      {
+        "min_fdp_h": 0.0,
+        "max_fdp_h": 14.5,
+        "classes": [
+          1,
+          2
+        ],
+        "min_rest_minutes": 90
+      },
+      {
+        "min_fdp_h": 14.5000001,
+        "max_fdp_h": 15.0,
+        "classes": [
+          1
+        ],
+        "min_rest_minutes": 105
+      },
+      {
+        "min_fdp_h": 14.5000001,
+        "max_fdp_h": 15.0,
+        "classes": [
+          2
+        ],
+        "min_rest_minutes": 120
+      },
+      {
+        "min_fdp_h": 15.0000001,
+        "max_fdp_h": 15.5,
+        "classes": [
+          1
+        ],
+        "min_rest_minutes": 120
+      },
+      {
+        "min_fdp_h": 15.0000001,
+        "max_fdp_h": 15.5,
+        "classes": [
+          2
+        ],
+        "min_rest_minutes": 140
+      },
+      {
+        "min_fdp_h": 15.5000001,
+        "max_fdp_h": 16.0,
+        "classes": [
+          1
+        ],
+        "min_rest_minutes": 135
+      },
+      {
+        "min_fdp_h": 15.5000001,
+        "max_fdp_h": 16.0,
+        "classes": [
+          2
+        ],
+        "min_rest_minutes": 160
+      },
+      {
+        "min_fdp_h": 16.0000001,
+        "max_fdp_h": 16.5,
+        "classes": [
+          1
+        ],
+        "min_rest_minutes": 155
+      },
+      {
+        "min_fdp_h": 16.0000001,
+        "max_fdp_h": 16.5,
+        "classes": [
+          2
+        ],
+        "min_rest_minutes": 180
+      },
+      {
+        "min_fdp_h": 16.5000001,
+        "max_fdp_h": 17.0,
+        "classes": [
+          1
+        ],
+        "min_rest_minutes": 180
+      },
+      {
+        "min_fdp_h": 16.5000001,
+        "max_fdp_h": 17.0,
+        "classes": [
+          2
+        ],
+        "min_rest_minutes": 205
+      },
+      {
+        "min_fdp_h": 17.0000001,
+        "max_fdp_h": 17.5,
+        "classes": [
+          1
+        ],
+        "min_rest_minutes": 205
+      },
+      {
+        "min_fdp_h": 17.0000001,
+        "max_fdp_h": 17.5,
+        "classes": [
+          2
+        ],
+        "min_rest_minutes": null
+      },
+      {
+        "min_fdp_h": 17.5000001,
+        "max_fdp_h": 18.0,
+        "classes": [
+          1
+        ],
+        "min_rest_minutes": 230
+      },
+      {
+        "min_fdp_h": 17.5000001,
+        "max_fdp_h": 18.0,
+        "classes": [
+          2
+        ],
+        "min_rest_minutes": null
+      }
+    ]
+  }
+}
